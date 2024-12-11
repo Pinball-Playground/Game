@@ -1,3 +1,21 @@
+import { NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { Routes } from '@angular/router';
+import { AppComponent } from './app.component';
+import { HomeComponent } from './home/home.component';
+import { PinballBoardComponent } from './pinball-board/pinball-board.component';
+import { LeaderboardComponent } from './leaderboard/leaderboard.component';
+import { SupportComponent } from './support/support.component';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  { path: 'play', component: PinballBoardComponent },
+  { path: 'leaderboard', component: LeaderboardComponent },
+  { path: 'support', component: SupportComponent },
+  { path: '', component: HomeComponent } // Default route
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
