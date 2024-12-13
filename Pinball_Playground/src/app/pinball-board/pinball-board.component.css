@@ -1,18 +1,6 @@
-.pinball-board {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f0f0f0;
-  position: relative;
-}
-
-.back-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
+canvas {
+  background-color: black;
+  display: block; /* Ensures canvas behaves as a block element */
+  margin: 0 auto; /* Centers it horizontally */
+  border: 1px solid white;
 }
