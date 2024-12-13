@@ -1,7 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { Routes } from '@angular/router';
-import { AppComponent } from './app.component';
+import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { PinballBoardComponent } from './pinball-board/pinball-board.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';

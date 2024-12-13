@@ -1,22 +1,6 @@
-<!--<div class="pinball-board">-->
-<!-- Pinball board content goes here -->
-<!--
-<div class="game-container">
-  <canvas #gameCanvas></canvas>
-  <div *ngIf="gameOver" class="game-over">
-    <p>Game Over</p>
-    <p>Score: {{ score }}</p>
-    <button (click)="startGame()">Restart</button>
-  </div>
-</div>
--->
-<!-- <button class="back-button" routerLink="/">Back to Home</button> -->
-
-
-<!--</div> -->
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,10 +10,12 @@
             margin: 0;
             overflow: hidden;
         }
+
         canvas {
             display: block;
             background: black;
         }
+
         #gameOver {
             position: absolute;
             top: 50%;
@@ -41,9 +27,16 @@
         }
     </style>
 </head>
+
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="gameOver">Game Over</div>
+    <div class="game-container">
+        <canvas #gameCanvas id="gameCanvas"></canvas>
+        <div *ngIf="gameOver" class="game-over">
+            <p>Game Over</p>
+            <p>Score: {{ score }}</p>
+            <button (click)="startGame()">Restart</button>
+        </div>
+    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -199,4 +192,5 @@
         update();
     </script>
 </body>
+
 </html>

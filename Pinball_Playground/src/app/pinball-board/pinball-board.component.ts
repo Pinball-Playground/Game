@@ -1,193 +1,216 @@
-import { Component, OnInit, ElementRef, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+interface Bullet {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  speed: number;
+  color: string;
+}
+
+interface Enemy {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  speed: number;
+  color: string;
+}
 
 @Component({
   selector: 'app-pinball-board',
   templateUrl: './pinball-board.component.html',
   styleUrls: ['./pinball-board.component.css'],
+  standalone: true,
+  imports: [CommonModule]
 })
-
 export class PinballBoardComponent implements OnInit {
-  @ViewChild('gameCanvas') gameCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
   private ctx!: CanvasRenderingContext2D;
-  private player!: Player;
+  public score: number = 0;
+  public gameOver: boolean = false;
   private bullets: Bullet[] = [];
   private enemies: Enemy[] = [];
-  public score: number = 0; //CHANGE TO PRIVATE WITH PROPER ALL THAT STUFF
-  private gameOver: boolean = false;
-  private keys = { ArrowLeft: false, ArrowRight: false, Space: false };
-  private interval: any;
 
-  
   ngOnInit(): void {
-    console.log('Testing canvas rendering');
-    this.initializeCanvas();
-    this.ctx.fillStyle = 'white';
-    this.ctx.font = '30px Arial';
-    this.ctx.fillText('Canvas Test', 50, 50);
+    console.log('ngOnInit called'); // Debug log
+    this.startGame();
   }
 
-  private initializeCanvas() {
-    this.ctx = this.gameCanvas.nativeElement.getContext('2d')!;
-    this.gameCanvas.nativeElement.width = window.innerWidth;
-    this.gameCanvas.nativeElement.height = window.innerHeight;
-  }
-  
   startGame() {
-    console.log('Game starting...');
-    this.initializeCanvas();
-    this.gameOver = false;
-    this.score = 0;
-    this.bullets = [];
-    this.enemies = [];
-    this.player = new Player(
-      this.gameCanvas.nativeElement.width / 2 - 25,
-      this.gameCanvas.nativeElement.height - 70
-    );
-    console.log('Player initialized:', this.player);
-    this.interval = setInterval(() => this.gameLoop(), 1000 / 60); // 60 FPS
-    this.spawnEnemy();
-  }
-  
-
-  @HostListener('document:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Space') {
-      this.keys[event.key] = true;
-    }
-  }
-  
-  @HostListener('document:keyup', ['$event'])
-  handleKeyUp(event: KeyboardEvent) {
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'Space') {
-      this.keys[event.key] = false;
-    }
-  }
-  
-
-  private gameLoop() {
-    if (this.gameOver) {
-      clearInterval(this.interval);
-      console.log('Game Over. Loop stopped.');
+    console.log('startGame called'); // Debug log
+    const canvas = this.gameCanvas.nativeElement;
+    this.ctx = canvas.getContext('2d')!;
+    if (!this.ctx) {
+      console.error('Failed to get canvas context'); // Debug log
       return;
     }
-    
+    const gameOverText = document.getElementById('gameOver');
 
-    this.ctx.clearRect(0, 0, this.gameCanvas.nativeElement.width, this.gameCanvas.nativeElement.height);
+    // Ensure the canvas dimensions are set correctly
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    // Move player and shoot
-    this.player.move(this.keys);
-    this.player.shoot(this.keys, this.bullets);
+    const player = {
+      x: canvas.width / 2,
+      y: canvas.height - 50,
+      width: 40,
+      height: 40,
+      speed: 7,
+      dx: 0,
+      color: 'white',
+    };
 
-    // Move bullets
-    this.bullets.forEach((bullet, index) => {
-      bullet.move();
-      if (bullet.y < 0) this.bullets.splice(index, 1);
-      bullet.draw(this.ctx);
-    });
+    const enemyFrequency = 100;
+    let frames = 0;
+    let isGameOver = false;
 
-    // Move and draw enemies
-    this.enemies.forEach((enemy, index) => {
-      enemy.move();
-      if (enemy.y > this.gameCanvas.nativeElement.height) {
-        this.enemies.splice(index, 1);
-      }
-      enemy.draw(this.ctx);
-    });
+    // Function to draw the player
+    const drawPlayer = () => {
+      this.ctx.fillStyle = player.color;
+      this.ctx.fillRect(player.x, player.y, player.width, player.height);
+    };
 
-    // Collision detection
-    this.checkCollisions();
+    // Function to create a bullet
+    const createBullet = () => {
+      this.bullets.push({
+        x: player.x + player.width / 2 - 5,
+        y: player.y,
+        width: 5,
+        height: 10,
+        speed: 10,
+        color: 'yellow',
+      });
+    };
 
-    // Spawn new enemies periodically
-    if (Math.random() < 0.02) this.spawnEnemy();
+    // Function to draw bullets
+    const drawBullets = () => {
+      this.bullets.forEach((bullet, index) => {
+        bullet.y -= bullet.speed;
 
-    // Draw player
-    this.player.draw(this.ctx);
-
-    // Update score
-    this.ctx.fillStyle = 'white';
-    this.ctx.font = '20px Arial';
-    this.ctx.fillText(`Score: ${this.score}`, 20, 30);
-  }
-
-  private spawnEnemy() {
-    const x = Math.random() * (this.gameCanvas.nativeElement.width - 40);
-    this.enemies.push(new Enemy(x, -40));
-  }
-
-  private checkCollisions() {
-    this.bullets.forEach((bullet, bulletIndex) => {
-      this.enemies.forEach((enemy, enemyIndex) => {
-        if (bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x &&
-            bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y) {
-          this.enemies.splice(enemyIndex, 1);
-          this.bullets.splice(bulletIndex, 1);
-          this.score += 10;
+        if (bullet.y + bullet.height < 0) {
+          this.bullets.splice(index, 1);
+        } else {
+          this.ctx.fillStyle = bullet.color;
+          this.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
         }
       });
-    });
+    };
+
+    // Function to create an enemy
+    const createEnemy = () => {
+      this.enemies.push({
+        x: Math.random() * (canvas.width - 40),
+        y: -40,
+        width: 40,
+        height: 40,
+        speed: 3,
+        color: 'red',
+      });
+    };
+
+    // Function to draw enemies
+    const drawEnemies = () => {
+      this.enemies.forEach((enemy, index) => {
+        enemy.y += enemy.speed;
+
+        if (enemy.y > canvas.height) {
+          this.enemies.splice(index, 1);
+        } else {
+          this.ctx.fillStyle = enemy.color;
+          this.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+        }
+
+        if (
+          player.x < enemy.x + enemy.width &&
+          player.x + player.width > enemy.x &&
+          player.y < enemy.y + enemy.height &&
+          player.y + player.height > enemy.y
+        ) {
+          endGame();
+        }
+      });
+    };
+
+    // Function to detect collisions between bullets and enemies
+    const detectCollisions = () => {
+      this.bullets.forEach((bullet, bIndex) => {
+        this.enemies.forEach((enemy, eIndex) => {
+          if (
+            bullet.x < enemy.x + enemy.width &&
+            bullet.x + bullet.width > enemy.x &&
+            bullet.y < enemy.y + enemy.height &&
+            bullet.y + bullet.height > enemy.y
+          ) {
+            this.bullets.splice(bIndex, 1);
+            this.enemies.splice(eIndex, 1);
+          }
+        });
+      });
+    };
+
+    // Function to move the player
+    const movePlayer = () => {
+      player.x += player.dx;
+
+      if (player.x < 0) player.x = 0;
+      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+    };
+
+    // Function to end the game
+    const endGame = () => {
+      isGameOver = true;
+      if (gameOverText) {
+        gameOverText.style.display = 'block';
+      }
+    };
+
+    // Game loop function
+    const update = () => {
+      if (isGameOver) return;
+
+      console.log('Updating game frame'); // Debug log
+
+      this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawPlayer();
+      drawBullets();
+      drawEnemies();
+      detectCollisions();
+      movePlayer();
+
+      frames++;
+      if (frames % enemyFrequency === 0) createEnemy();
+
+      requestAnimationFrame(update);
+    };
+
+    // Event listeners for keyboard inputs
+    const keyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
+      if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
+      if (e.key === ' ') createBullet();
+    };
+
+    const keyUp = (e: KeyboardEvent) => {
+      if (
+        e.key === 'ArrowLeft' ||
+        e.key === 'ArrowRight' ||
+        e.key === 'a' ||
+        e.key === 'd'
+      ) {
+        player.dx = 0;
+      }
+    };
+
+    window.addEventListener('keydown', keyDown);
+    window.addEventListener('keyup', keyUp);
+
+    // Start the game loop
+    update();
   }
-}
-
-class Player {
-  constructor(public x: number, public y: number) {}
-  width = 50;
-  height = 50;
-  speed = 7;
-
-  move(keys: any) {
-    if (keys.ArrowLeft && this.x > 0) this.x -= this.speed;
-    if (keys.ArrowRight && this.x < window.innerWidth - this.width) this.x += this.speed;
-  }
-
-  shoot(keys: any, bullets: Bullet[]) {
-    if (keys.Space) {
-      bullets.push(new Bullet(this.x + this.width / 2));
-    }
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    if (!ctx) {
-      console.error('Context is not available for drawing the player');
-      return;
-    }
-    ctx.fillStyle = 'white';
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-  }
-  
-}
-
-class Bullet {
-  constructor(public x: number, public y: number = window.innerHeight - 70) {}
-  width = 5;
-  height = 20;
-  speed = 5;
-
-  move() {
-    this.y -= this.speed;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = 'red';
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-  }
-}
-
-class Enemy {
-  constructor(public x: number, public y: number) {}
-  width = 40;
-  height = 40;
-  speed = 2;
-
-  move() {
-    this.y += this.speed;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    console.log('Drawing player at:', this.x, this.y); // Debug
-    ctx.fillStyle = 'white';
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-  }
-  
 }
 
 
