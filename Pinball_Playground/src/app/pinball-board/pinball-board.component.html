@@ -1,5 +1,196 @@
-<div class="pinball-board">
-  <!-- Pinball board content goes here -->
-  <h2>Pinball Board</h2>
-  <button class="back-button" routerLink="/">Back to Home</button>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Galaga Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            background: black;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 48px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <canvas #gameCanvas id="gameCanvas"></canvas>
+        <div *ngIf="gameOver" class="game-over">
+            <p>Game Over</p>
+            <p>Score: {{ score }}</p>
+            <button (click)="startGame()">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameOverText = document.getElementById('gameOver');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            width: 40,
+            height: 40,
+            speed: 7,
+            dx: 0,
+            color: 'white',
+        };
+
+        const bullets = [];
+        const enemies = [];
+        const enemyFrequency = 100;
+        let frames = 0;
+        let isGameOver = false;
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function createBullet() {
+            bullets.push({
+                x: player.x + player.width / 2 - 5,
+                y: player.y,
+                width: 5,
+                height: 10,
+                speed: 10,
+                color: 'yellow',
+            });
+        }
+
+        function drawBullets() {
+            bullets.forEach((bullet, index) => {
+                bullet.y -= bullet.speed;
+
+                if (bullet.y + bullet.height < 0) {
+                    bullets.splice(index, 1);
+                } else {
+                    ctx.fillStyle = bullet.color;
+                    ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                }
+            });
+        }
+
+        function createEnemy() {
+            enemies.push({
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: 3,
+                color: 'red',
+            });
+        }
+
+        function drawEnemies() {
+            enemies.forEach((enemy, index) => {
+                enemy.y += enemy.speed;
+
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);
+                } else {
+                    ctx.fillStyle = enemy.color;
+                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                }
+
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    endGame();
+                }
+            });
+        }
+
+        function detectCollisions() {
+            bullets.forEach((bullet, bIndex) => {
+                enemies.forEach((enemy, eIndex) => {
+                    if (
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y
+                    ) {
+                        bullets.splice(bIndex, 1);
+                        enemies.splice(eIndex, 1);
+                    }
+                });
+            });
+        }
+
+        function movePlayer() {
+            player.x += player.dx;
+
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        }
+
+        function endGame() {
+            isGameOver = true;
+            gameOverText.style.display = 'block';
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+            detectCollisions();
+            movePlayer();
+
+            frames++;
+            if (frames % enemyFrequency === 0) createEnemy();
+
+            requestAnimationFrame(update);
+        }
+
+        function keyDown(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
+            if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
+            if (e.key === ' ') createBullet();
+        }
+
+        function keyUp(e) {
+            if (
+                e.key === 'ArrowLeft' ||
+                e.key === 'ArrowRight' ||
+                e.key === 'a' ||
+                e.key === 'd'
+            ) {
+                player.dx = 0;
+            }
+        }
+
+        window.addEventListener('keydown', keyDown);
+        window.addEventListener('keyup', keyUp);
+
+        update();
+    </script>
+</body>
+
+</html>
