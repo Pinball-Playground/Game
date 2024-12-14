@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface Bullet {
@@ -20,19 +20,21 @@ interface Enemy {
 }
 
 @Component({
-  selector: 'app-pinball-board',
-  templateUrl: './pinball-board.component.html',
-  styleUrls: ['./pinball-board.component.css'],
+  selector: 'app-space-shooter', // Updated selector
+  templateUrl: './space-shooter.component.html',
+  styleUrls: ['./space-shooter.component.css'],
   standalone: true,
   imports: [CommonModule]
 })
-export class PinballBoardComponent implements OnInit {
+export class SpaceShooterComponent implements OnInit { // Updated class name
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
   private ctx!: CanvasRenderingContext2D;
   public score: number = 0;
   public gameOver: boolean = false;
   private bullets: Bullet[] = [];
   private enemies: Enemy[] = [];
+
+  constructor() { }
 
   ngOnInit(): void {
     console.log('ngOnInit called'); // Debug log

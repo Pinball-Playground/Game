@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PinballBoardComponent } from './pinball-board.component';
+import { PinballBoardComponent } from './space-shooter.component';
 
 describe('PinballBoardComponent', () => {
   let component: PinballBoardComponent;
@@ -10,7 +10,7 @@ describe('PinballBoardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [PinballBoardComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(PinballBoardComponent);
     component = fixture.componentInstance;
