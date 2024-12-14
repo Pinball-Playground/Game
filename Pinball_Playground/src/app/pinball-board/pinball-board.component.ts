@@ -146,6 +146,7 @@ export class PinballBoardComponent implements OnInit {
           ) {
             this.bullets.splice(bIndex, 1);
             this.enemies.splice(eIndex, 1);
+            this.score += 10; // Increment score on collision
           }
         });
       });

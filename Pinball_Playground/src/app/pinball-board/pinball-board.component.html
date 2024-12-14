@@ -29,12 +29,16 @@
 </head>
 
 <body>
+
     <div class="game-container">
         <canvas #gameCanvas id="gameCanvas"></canvas>
-        <div *ngIf="gameOver" class="game-over">
+        <div *ngIf="gameOver" class="game-over" id="gameOver">
             <p>Game Over</p>
             <p>Score: {{ score }}</p>
             <button (click)="startGame()">Restart</button>
+        </div>
+        <div class="score-display">
+            <p>Score: {{ score }}</p>
         </div>
     </div>
 
@@ -61,6 +65,7 @@
         const enemyFrequency = 100;
         let frames = 0;
         let isGameOver = false;
+        let score = 0;
 
         function drawPlayer() {
             ctx.fillStyle = player.color;
@@ -135,6 +140,7 @@
                     ) {
                         bullets.splice(bIndex, 1);
                         enemies.splice(eIndex, 1);
+                        updateScore(50);
                     }
                 });
             });
@@ -145,6 +151,11 @@
 
             if (player.x < 0) player.x = 0;
             if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        }
+
+        function updateScore(points) {
+            score += points;
+            scoreText.textContent = `Score: ${score}`;
         }
 
         function endGame() {
