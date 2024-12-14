@@ -32,14 +32,8 @@
 
     <div class="game-container">
         <canvas #gameCanvas id="gameCanvas"></canvas>
-        <div *ngIf="gameOver" class="game-over" id="gameOver">
-            <p>Game Over</p>
-            <p>Score: {{ score }}</p>
-            <button (click)="startGame()">Restart</button>
-        </div>
-        <div class="score-display">
-            <p>Score: {{ score }}</p>
-        </div>
+        <div id="gameOver">Game Over<br>Score: <span id="finalScore">0</span><br>Press R to Restart</div>
+        <div id="score">Score: {{ score }}</div>
     </div>
 
     <script>
