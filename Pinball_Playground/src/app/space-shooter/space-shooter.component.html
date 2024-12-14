@@ -24,23 +24,24 @@
             color: white;
             font-size: 48px;
             display: none;
+            text-align: center;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="game-container">
-        <canvas #gameCanvas id="gameCanvas"></canvas>
-        <div *ngIf="gameOver" class="game-over" id="gameOver">
-            <p>Game Over</p>
-            <p>Score: {{ score }}</p>
-            <button (click)="startGame()">Restart</button>
-        </div>
-        <div class="score-display">
-            <p>Score: {{ score }}</p>
-        </div>
-    </div>
+    <canvas #gameCanvas></canvas>
+    <div id="gameOver">Game Over<br>Score: <span id="finalScore">0</span><br>Press R to Restart</div>
+    <div id="score">Score: 0</div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -155,11 +156,12 @@
 
         function updateScore(points) {
             score += points;
-            scoreText.textContent = `Score: ${score}`;
+            document.getElementById('score').textContent = `Score: ${score}`;
         }
 
         function endGame() {
             isGameOver = true;
+            document.getElementById('finalScore').textContent = score;
             gameOverText.style.display = 'block';
         }
 
@@ -184,6 +186,7 @@
             if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
             if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
             if (e.key === ' ') createBullet();
+            if (e.key === 'r' && isGameOver) restartGame();
         }
 
         function keyUp(e) {
@@ -195,6 +198,17 @@
             ) {
                 player.dx = 0;
             }
+        }
+
+        function restartGame() {
+            isGameOver = false;
+            score = 0;
+            bullets.length = 0;
+            enemies.length = 0;
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 50;
+            gameOverText.style.display = 'none';
+            update();
         }
 
         window.addEventListener('keydown', keyDown);

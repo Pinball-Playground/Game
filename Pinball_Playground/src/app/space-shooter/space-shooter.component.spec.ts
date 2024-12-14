@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PinballBoardComponent } from './space-shooter.component';
+import { SpaceShooterComponent } from './space-shooter.component';
 
-describe('PinballBoardComponent', () => {
-  let component: PinballBoardComponent;
-  let fixture: ComponentFixture<PinballBoardComponent>;
+describe('SpaceShooterComponent', () => {
+  let component: SpaceShooterComponent;
+  let fixture: ComponentFixture<SpaceShooterComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PinballBoardComponent]
+      imports: [SpaceShooterComponent]
     })
       .compileComponents();
 
-    fixture = TestBed.createComponent(PinballBoardComponent);
+    fixture = TestBed.createComponent(SpaceShooterComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
