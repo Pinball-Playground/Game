@@ -33,6 +33,7 @@ export class PinballBoardComponent implements OnInit {
   public gameOver: boolean = false;
   private bullets: Bullet[] = [];
   private enemies: Enemy[] = [];
+  private player: { x: number; y: number; width: number; height: number; speed: number; dx: number; color: string; } | null = null;
 
   ngOnInit(): void {
     console.log('ngOnInit called'); // Debug log
@@ -47,37 +48,42 @@ export class PinballBoardComponent implements OnInit {
       console.error('Failed to get canvas context'); // Debug log
       return;
     }
-    const gameOverText = document.getElementById('gameOver');
 
     // Ensure the canvas dimensions are set correctly
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const player = {
+    this.player = {
       x: canvas.width / 2,
       y: canvas.height - 50,
       width: 40,
       height: 40,
-      speed: 7,
+      speed: 5.6, // Reduced speed by 20%
       dx: 0,
       color: 'white',
     };
 
+    this.bullets = [];
+    this.enemies = [];
+    this.score = 0;
+    this.gameOver = false;
+
     const enemyFrequency = 100;
     let frames = 0;
-    let isGameOver = false;
 
     // Function to draw the player
     const drawPlayer = () => {
-      this.ctx.fillStyle = player.color;
-      this.ctx.fillRect(player.x, player.y, player.width, player.height);
+      if (this.player) {
+        this.ctx.fillStyle = this.player.color;
+        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+      }
     };
 
     // Function to create a bullet
     const createBullet = () => {
       this.bullets.push({
-        x: player.x + player.width / 2 - 5,
-        y: player.y,
+        x: this.player!.x + this.player!.width / 2 - 5,
+        y: this.player!.y,
         width: 5,
         height: 10,
         speed: 10,
@@ -124,10 +130,11 @@ export class PinballBoardComponent implements OnInit {
         }
 
         if (
-          player.x < enemy.x + enemy.width &&
-          player.x + player.width > enemy.x &&
-          player.y < enemy.y + enemy.height &&
-          player.y + player.height > enemy.y
+          this.player &&
+          this.player.x < enemy.x + enemy.width &&
+          this.player.x + this.player.width > enemy.x &&
+          this.player.y < enemy.y + enemy.height &&
+          this.player.y + this.player.height > enemy.y
         ) {
           endGame();
         }
@@ -154,15 +161,22 @@ export class PinballBoardComponent implements OnInit {
 
     // Function to move the player
     const movePlayer = () => {
-      player.x += player.dx;
+      if (this.player) {
+        this.player.x += this.player.dx;
 
-      if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        if (this.player.x < 0) this.player.x = 0;
+        if (this.player.x + this.player.width > canvas.width) this.player.x = canvas.width - this.player.width;
+      }
     };
 
     // Function to end the game
     const endGame = () => {
-      isGameOver = true;
+      this.gameOver = true;
+      this.player = null;
+      this.bullets = [];
+      this.enemies = [];
+      console.log('Game Over'); // Debug log
+      const gameOverText = document.getElementById('gameOver');
       if (gameOverText) {
         gameOverText.style.display = 'block';
       }
@@ -170,7 +184,10 @@ export class PinballBoardComponent implements OnInit {
 
     // Game loop function
     const update = () => {
-      if (isGameOver) return;
+      if (this.gameOver) {
+        console.log('Game loop stopped'); // Debug log
+        return;
+      }
 
       console.log('Updating game frame'); // Debug log
 
@@ -190,19 +207,23 @@ export class PinballBoardComponent implements OnInit {
 
     // Event listeners for keyboard inputs
     const keyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
-      if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
-      if (e.key === ' ') createBullet();
+      if (this.player) {
+        if (e.key === 'ArrowLeft' || e.key === 'a') this.player.dx = -this.player.speed;
+        if (e.key === 'ArrowRight' || e.key === 'd') this.player.dx = this.player.speed;
+        if (e.key === ' ') createBullet();
+      }
     };
 
     const keyUp = (e: KeyboardEvent) => {
-      if (
-        e.key === 'ArrowLeft' ||
-        e.key === 'ArrowRight' ||
-        e.key === 'a' ||
-        e.key === 'd'
-      ) {
-        player.dx = 0;
+      if (this.player) {
+        if (
+          e.key === 'ArrowLeft' ||
+          e.key === 'ArrowRight' ||
+          e.key === 'a' ||
+          e.key === 'd'
+        ) {
+          this.player.dx = 0;
+        }
       }
     };
 
@@ -211,6 +232,15 @@ export class PinballBoardComponent implements OnInit {
 
     // Start the game loop
     update();
+  }
+
+  restartGame() {
+    this.gameOver = false;
+    const gameOverText = document.getElementById('gameOver');
+    if (gameOverText) {
+      gameOverText.style.display = 'none';
+    }
+    this.startGame();
   }
 }
 

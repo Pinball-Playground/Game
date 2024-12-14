@@ -19,6 +19,13 @@ canvas {
   transform: translate(-50%, -50%);
   color: white;
   text-align: center;
+  display: none;
+  /* Initially hidden */
+}
+
+.game-over.show {
+  display: block;
+  /* Show when game is over */
 }
 
 .score-display {
