@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,12 +9,10 @@
             margin: 0;
             overflow: hidden;
         }
-
         canvas {
             display: block;
             background: black;
         }
-
         #gameOver {
             position: absolute;
             top: 50%;
@@ -24,52 +21,80 @@
             color: white;
             font-size: 48px;
             display: none;
+            text-align: center;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
         }
     </style>
 </head>
-
 <body>
-
-    <div class="game-container">
-        <canvas #gameCanvas id="gameCanvas"></canvas>
-        <div *ngIf="gameOver" class="game-over" id="gameOver">
-            <p>Game Over</p>
-            <p>Score: {{ score }}</p>
-            <button (click)="startGame()">Restart</button>
-        </div>
-        <div class="score-display">
-            <p>Score: {{ score }}</p>
-        </div>
-    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="gameOver">Game Over<br>Score: <span id="finalScore">0</span><br>Press Space to Restart</div>
+    <div id="score">Score: 0</div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const gameOverText = document.getElementById('gameOver');
+        const finalScoreText = document.getElementById('finalScore');
+        const scoreText = document.getElementById('score');
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        // Set canvas dimensions for arcade cabinet size
+        canvas.width = 800;
+        canvas.height = 600;
 
-        const player = {
-            x: canvas.width / 2,
-            y: canvas.height - 50,
-            width: 40,
-            height: 40,
-            speed: 7,
-            dx: 0,
-            color: 'white',
-        };
+        const backgroundImg = new Image();
+        backgroundImg.src = 'space-background.jpg'; // Provide a path to the space background image
 
-        const bullets = [];
-        const enemies = [];
-        const enemyFrequency = 100;
-        let frames = 0;
-        let isGameOver = false;
-        let score = 0;
+        const playerSprite = new Image();
+        playerSprite.src = 'player-ship.png'; // Provide a path to the player sprite image
+
+        const enemySprite = new Image();
+        enemySprite.src = 'enemy-ship.png'; // Provide a path to the enemy sprite image
+
+        let player, bullets, enemies, frames, isGameOver, score, backgroundY;
+        let canShoot = true; // Prevent repeated bullet firing
+        let enemySpawnRate = 100; // Base spawn rate for enemies
+
+        function initializeGame() {
+            player = {
+                x: canvas.width / 2 - 20,
+                y: canvas.height - 80,
+                width: 40,
+                height: 40,
+                speed: 7,
+                dx: 0
+            };
+
+            bullets = [];
+            enemies = [];
+            frames = 0;
+            isGameOver = false;
+            score = 0;
+            backgroundY = 0;
+            canShoot = true;
+            enemySpawnRate = 100;
+
+            scoreText.textContent = `Score: ${score}`;
+            gameOverText.style.display = 'none';
+        }
+
+        function drawBackground() {
+            backgroundY += 2; // Scroll speed
+            if (backgroundY >= canvas.height) {
+                backgroundY = 0;
+            }
+            ctx.drawImage(backgroundImg, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImg, 0, backgroundY, canvas.width, canvas.height);
+        }
 
         function drawPlayer() {
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.drawImage(playerSprite, player.x, player.y, player.width, player.height);
         }
 
         function createBullet() {
@@ -78,8 +103,7 @@
                 y: player.y,
                 width: 5,
                 height: 10,
-                speed: 10,
-                color: 'yellow',
+                speed: 10
             });
         }
 
@@ -90,7 +114,7 @@
                 if (bullet.y + bullet.height < 0) {
                     bullets.splice(index, 1);
                 } else {
-                    ctx.fillStyle = bullet.color;
+                    ctx.fillStyle = 'yellow';
                     ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                 }
             });
@@ -102,8 +126,7 @@
                 y: -40,
                 width: 40,
                 height: 40,
-                speed: 3,
-                color: 'red',
+                speed: 3
             });
         }
 
@@ -112,10 +135,13 @@
                 enemy.y += enemy.speed;
 
                 if (enemy.y > canvas.height) {
-                    enemies.splice(index, 1);
+                    endGame();
                 } else {
-                    ctx.fillStyle = enemy.color;
-                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                    ctx.save();
+                    ctx.translate(enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    ctx.rotate(Math.PI); // Rotate 180 degrees
+                    ctx.drawImage(enemySprite, -enemy.width / 2, -enemy.height / 2, enemy.width, enemy.height);
+                    ctx.restore();
                 }
 
                 if (
@@ -156,10 +182,15 @@
         function updateScore(points) {
             score += points;
             scoreText.textContent = `Score: ${score}`;
+
+            if (score % 500 === 0) {
+                enemySpawnRate = Math.max(20, enemySpawnRate - 10); // Increase spawn frequency, minimum spawn rate is 20
+            }
         }
 
         function endGame() {
             isGameOver = true;
+            finalScoreText.textContent = score;
             gameOverText.style.display = 'block';
         }
 
@@ -168,6 +199,7 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            drawBackground();
             drawPlayer();
             drawBullets();
             drawEnemies();
@@ -175,7 +207,7 @@
             movePlayer();
 
             frames++;
-            if (frames % enemyFrequency === 0) createEnemy();
+            if (frames % enemySpawnRate === 0) createEnemy();
 
             requestAnimationFrame(update);
         }
@@ -183,7 +215,13 @@
         function keyDown(e) {
             if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
             if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
-            if (e.key === ' ') createBullet();
+            if (e.key === ' ' && isGameOver) {
+                initializeGame();
+                update();
+            } else if (e.key === ' ' && canShoot && !isGameOver) {
+                createBullet();
+                canShoot = false;
+            }
         }
 
         function keyUp(e) {
@@ -195,13 +233,16 @@
             ) {
                 player.dx = 0;
             }
+            if (e.key === ' ') {
+                canShoot = true;
+            }
         }
 
         window.addEventListener('keydown', keyDown);
         window.addEventListener('keyup', keyUp);
 
+        initializeGame();
         update();
     </script>
 </body>
-
 </html>
