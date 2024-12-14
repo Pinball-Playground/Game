@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Pinball_Playground": {
+    "angularArcade": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/pinball-playground",
+            "outputPath": "dist/angular-arcade",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -59,10 +59,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Pinball_Playground:build:production"
+              "buildTarget": "angularArcade:build:production"
             },
             "development": {
-              "buildTarget": "Pinball_Playground:build:development"
+              "buildTarget": "angularArcade:build:development"
             }
           },
           "defaultConfiguration": "development"
