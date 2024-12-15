@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Firestore, collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, doc } from '@angular/fire/firestore';
 
 interface Bullet {
   x: number;
@@ -46,6 +47,8 @@ export class SpaceShooterComponent implements OnInit {
   private backgroundY: number = 0;
   private canShoot: boolean = true;
   private enemySpawnRate: number = 100;
+
+  constructor(private firestore: Firestore) { }
 
   ngOnInit(): void {
     const canvas = this.gameCanvas.nativeElement;
@@ -194,10 +197,30 @@ export class SpaceShooterComponent implements OnInit {
       }
     };
 
-    const endGame = () => {
+    const endGame = async () => {
       this.isGameOver = true;
       finalScoreText.textContent = this.score.toString();
       gameOverText.style.display = 'block';
+
+      // Save the score to Firestore
+      const scoresCollection = collection(this.firestore, 'scores');
+      const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+      const scoresSnapshot = await getDocs(scoresQuery);
+
+      if (scoresSnapshot.size < 10) {
+        // If there are fewer than 10 scores, add the new score
+        await addDoc(scoresCollection, { score: this.score, date: new Date() });
+      } else {
+        // If there are 10 or more scores, check if the new score is higher than the lowest score
+        const lowestScoreDoc = scoresSnapshot.docs[scoresSnapshot.size - 1];
+        const lowestScore = lowestScoreDoc.data()['score'];
+
+        if (this.score > lowestScore) {
+          // Delete the lowest score and add the new score
+          await deleteDoc(doc(this.firestore, 'scores', lowestScoreDoc.id));
+          await addDoc(scoresCollection, { score: this.score, date: new Date() });
+        }
+      }
     };
 
     const update = () => {
