@@ -7,9 +7,10 @@ import { Router } from '@angular/router';
   styleUrls: ['./game-menu.component.css']
 })
 export class GameMenuComponent {
+
   constructor(private router: Router) { }
 
-  navigateTo(game: string) {
+  navigateTo(game: string): void {
     this.router.navigate([game]);
   }
 }
