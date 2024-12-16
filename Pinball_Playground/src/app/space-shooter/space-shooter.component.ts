@@ -27,6 +27,11 @@ interface Enemy {
   speed: number;
 }
 
+interface Score {
+  name: string;
+  score: number;
+}
+
 @Component({
   selector: 'app-space-shooter',
   templateUrl: './space-shooter.component.html',
@@ -47,6 +52,9 @@ export class SpaceShooterComponent implements OnInit {
   private backgroundY: number = 0;
   private canShoot: boolean = true;
   private enemySpawnRate: number = 100;
+  public leaderboard: Score[] = [];
+  public playerName: string = '';
+  public showInput: boolean = false;
 
   constructor(private firestore: Firestore) { }
 
@@ -56,6 +64,8 @@ export class SpaceShooterComponent implements OnInit {
     const gameOverText = document.getElementById('gameOver')!;
     const finalScoreText = document.getElementById('finalScore')!;
     const scoreText = document.getElementById('score')!;
+    const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+    const leaderboardElement = document.getElementById('leaderboard')!;
 
     const backgroundImg = new Image();
     backgroundImg.src = 'assets/space-background.jpg'; // Ensure this path is correct
@@ -73,10 +83,10 @@ export class SpaceShooterComponent implements OnInit {
 
       this.player = {
         x: canvas.width / 2 - 20,
-        y: canvas.height - 80,
+        y: canvas.height - 100,
         width: 40,
         height: 40,
-        speed: 15,
+        speed: 10,
         dx: 0
       };
 
@@ -91,10 +101,12 @@ export class SpaceShooterComponent implements OnInit {
 
       scoreText.textContent = `Score: ${this.score}`;
       gameOverText.style.display = 'none';
+      nameInput.style.display = 'none';
+      leaderboardElement.style.display = 'none';
     };
 
     const drawBackground = () => {
-      this.backgroundY += 2; // Scroll speed
+      this.backgroundY += 1; // Scroll speed
       if (this.backgroundY >= canvas.height) {
         this.backgroundY = 0;
       }
@@ -110,8 +122,8 @@ export class SpaceShooterComponent implements OnInit {
       this.bullets.push({
         x: this.player.x + this.player.width / 2 - 5,
         y: this.player.y,
-        width: 5,
-        height: 10,
+        width: 10,
+        height: 20,
         speed: 10
       });
     };
@@ -131,11 +143,11 @@ export class SpaceShooterComponent implements OnInit {
 
     const createEnemy = () => {
       this.enemies.push({
-        x: Math.random() * (canvas.width - 40),
-        y: -40,
-        width: 40,
-        height: 40,
-        speed: 3
+        x: Math.random() * (canvas.width - 80),
+        y: -80,
+        width: 80,
+        height: 80,
+        speed: 1.5
       });
     };
 
@@ -200,27 +212,67 @@ export class SpaceShooterComponent implements OnInit {
     const endGame = async () => {
       this.isGameOver = true;
       finalScoreText.textContent = this.score.toString();
-      gameOverText.style.display = 'block';
+      gameOverText.style.display = 'none'; // Hide game over text initially
 
       // Save the score to Firestore
       const scoresCollection = collection(this.firestore, 'scores');
       const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
       const scoresSnapshot = await getDocs(scoresQuery);
 
-      if (scoresSnapshot.size < 10) {
-        // If there are fewer than 10 scores, add the new score
-        await addDoc(scoresCollection, { score: this.score, date: new Date() });
+      if (scoresSnapshot.size < 10 || this.score > scoresSnapshot.docs[scoresSnapshot.size - 1].data()['score']) {
+        this.showInput = true;
+        nameInput.style.display = 'block';
+        nameInput.focus();
       } else {
-        // If there are 10 or more scores, check if the new score is higher than the lowest score
-        const lowestScoreDoc = scoresSnapshot.docs[scoresSnapshot.size - 1];
-        const lowestScore = lowestScoreDoc.data()['score'];
-
-        if (this.score > lowestScore) {
-          // Delete the lowest score and add the new score
-          await deleteDoc(doc(this.firestore, 'scores', lowestScoreDoc.id));
-          await addDoc(scoresCollection, { score: this.score, date: new Date() });
-        }
+        this.showLeaderboard();
       }
+    };
+
+    const saveScore = async () => {
+      const scoresCollection = collection(this.firestore, 'scores');
+      const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+      const scoresSnapshot = await getDocs(scoresQuery);
+
+      if (scoresSnapshot.size >= 10) {
+        const lowestScoreDoc = scoresSnapshot.docs[scoresSnapshot.size - 1];
+        await deleteDoc(doc(this.firestore, 'scores', lowestScoreDoc.id));
+      }
+
+      await addDoc(scoresCollection, { name: this.playerName, score: this.score, date: new Date() });
+      this.showLeaderboard();
+    };
+
+    const showLeaderboard = async () => {
+      const scoresCollection = collection(this.firestore, 'scores');
+      const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+      const scoresSnapshot = await getDocs(scoresQuery);
+
+      this.leaderboard = scoresSnapshot.docs.map(doc => doc.data() as Score);
+      this.scrollLeaderboard();
+    };
+
+    const scrollLeaderboard = () => {
+      const leaderboardElement = document.getElementById('leaderboard')!;
+      leaderboardElement.style.display = 'block';
+      leaderboardElement.style.position = 'absolute';
+      leaderboardElement.style.left = '50%';
+      leaderboardElement.style.transform = 'translateX(-50%)';
+      leaderboardElement.style.bottom = '-100%'; // Start from below the screen
+
+      let scrollPosition = -leaderboardElement.scrollHeight;
+
+      const scroll = () => {
+        if (scrollPosition >= window.innerHeight) {
+          leaderboardElement.style.display = 'none';
+          gameOverText.style.display = 'block'; // Show game over text after scroll
+        } else {
+          scrollPosition += 0.8; // Adjust scroll speed as needed
+          leaderboardElement.style.bottom = `${scrollPosition}px`;
+          requestAnimationFrame(scroll);
+        }
+      };
+
+      scroll();
     };
 
     const update = () => {
@@ -244,7 +296,7 @@ export class SpaceShooterComponent implements OnInit {
     const keyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft' || e.key === 'a') this.player.dx = -this.player.speed;
       if (e.key === 'ArrowRight' || e.key === 'd') this.player.dx = this.player.speed;
-      if (e.key === 'r' && this.isGameOver) {
+      if (e.key === 'r' && this.isGameOver && !this.showInput) { // Check if name input is not visible
         initializeGame();
         update();
       } else if (e.key === ' ' && this.canShoot && !this.isGameOver) {
@@ -267,6 +319,15 @@ export class SpaceShooterComponent implements OnInit {
       }
     };
 
+    nameInput.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && this.showInput) {
+        this.playerName = nameInput.value.toUpperCase().slice(0, 3);
+        nameInput.style.display = 'none';
+        this.showInput = false;
+        saveScore();
+      }
+    });
+
     window.addEventListener('keydown', keyDown);
     window.addEventListener('keyup', keyUp);
     window.addEventListener('resize', initializeGame); // Handle resizing
@@ -274,6 +335,38 @@ export class SpaceShooterComponent implements OnInit {
     initializeGame();
     update();
   }
+
+  private async showLeaderboard() {
+    const scoresCollection = collection(this.firestore, 'scores');
+    const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+    const scoresSnapshot = await getDocs(scoresQuery);
+
+    this.leaderboard = scoresSnapshot.docs.map(doc => doc.data() as Score);
+    this.scrollLeaderboard();
+  }
+
+  private scrollLeaderboard() {
+    const leaderboardElement = document.getElementById('leaderboard')!;
+    leaderboardElement.style.display = 'block';
+    leaderboardElement.style.position = 'absolute';
+    leaderboardElement.style.left = '50%';
+    leaderboardElement.style.transform = 'translateX(-50%)';
+    leaderboardElement.style.bottom = '-100%'; // Start from below the screen
+
+    let scrollPosition = -leaderboardElement.scrollHeight;
+
+    const scroll = () => {
+      if (scrollPosition >= window.innerHeight) {
+        leaderboardElement.style.display = 'none';
+        const gameOverText = document.getElementById('gameOver')!;
+        gameOverText.style.display = 'block'; // Show game over text after scroll
+      } else {
+        scrollPosition += 0.8; // Adjust scroll speed as needed
+        leaderboardElement.style.bottom = `${scrollPosition}px`;
+        requestAnimationFrame(scroll);
+      }
+    };
+
+    scroll();
+  }
 }
-
-
