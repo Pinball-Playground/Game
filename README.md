@@ -1,1 +1,2 @@
 # Game
+Link to our firestore database: https://console.firebase.google.com/u/0/project/angular-arcade/firestore/databases/-default-/data/~2Fscores~2F1r7bTHPOktW6MHLaGsIV?fb_gclid=Cj0KCQiAvP-6BhDyARIsAJ3uv7ZaKdujx_kdQAgFzysE9p94FIMN7O6hHn0gHsMQfN_XJ94dPK6UpO0aAgCyEALw_wcB
