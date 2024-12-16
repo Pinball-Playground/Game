@@ -10,10 +10,12 @@ body {
 #game-container {
   display: grid;
   grid-template-columns: repeat(20, 25px);
-  grid-template-rows: repeat(20, 25px);
+  grid-template-rows: repeat(13, 25px);
+  /* Adjusted to match the number of rows in the maze */
   margin: 20px auto;
   width: 500px;
-  height: 500px;
+  height: 325px;
+  /* Adjusted to match the number of rows in the maze */
   background-color: #000;
   border: 5px solid #fff;
 }

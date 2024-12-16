@@ -1,14 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-pacman-game',
   templateUrl: './pacman-game.component.html',
   styleUrls: ['./pacman-game.component.css']
 })
-export class PacmanGameComponent implements OnInit {
+export class PacmanGameComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     console.log('PacmanGameComponent initialized');
+  }
+
+  ngAfterViewInit(): void {
+    console.log('PacmanGameComponent view initialized');
     this.initializePacmanGame();
   }
 
@@ -31,7 +35,7 @@ export class PacmanGameComponent implements OnInit {
       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
       [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
       [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
-      [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+      [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
       [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
       [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
       [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
@@ -56,6 +60,7 @@ export class PacmanGameComponent implements OnInit {
           }
           gameContainer.appendChild(div);
           rowDiv.push(div);
+          console.log(`Added cell at (${x}, ${y}) with class ${div.className}`);
         });
         grid.push(rowDiv);
       });
@@ -65,11 +70,13 @@ export class PacmanGameComponent implements OnInit {
     function updatePacman() {
       console.log('Updating Pacman position:', pacman);
       grid[pacman.y][pacman.x].classList.add('pacman');
+      console.log(`Pacman updated at (${pacman.x}, ${pacman.y})`);
     }
 
     function clearPacman() {
       console.log('Clearing Pacman position:', pacman);
       grid[pacman.y][pacman.x].classList.remove('pacman');
+      console.log(`Pacman cleared at (${pacman.x}, ${pacman.y})`);
     }
 
     function movePacman(dx: number, dy: number) {
@@ -87,6 +94,7 @@ export class PacmanGameComponent implements OnInit {
     }
 
     document.addEventListener('keydown', (event) => {
+      console.log(`Key pressed: ${event.key}`);
       switch (event.key) {
         case 'ArrowUp':
           movePacman(0, -1);
