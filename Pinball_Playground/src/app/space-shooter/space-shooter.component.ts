@@ -73,10 +73,10 @@ export class SpaceShooterComponent implements OnInit {
 
       this.player = {
         x: canvas.width / 2 - 20,
-        y: canvas.height - 80,
-        width: 40,
-        height: 40,
-        speed: 15,
+        y: canvas.height - 100,
+        width: 80,
+        height: 80,
+        speed: 10,
         dx: 0
       };
 
@@ -94,7 +94,7 @@ export class SpaceShooterComponent implements OnInit {
     };
 
     const drawBackground = () => {
-      this.backgroundY += 2; // Scroll speed
+      this.backgroundY += 0.5; // Scroll speed
       if (this.backgroundY >= canvas.height) {
         this.backgroundY = 0;
       }
@@ -110,8 +110,8 @@ export class SpaceShooterComponent implements OnInit {
       this.bullets.push({
         x: this.player.x + this.player.width / 2 - 5,
         y: this.player.y,
-        width: 5,
-        height: 10,
+        width: 10,
+        height: 20,
         speed: 10
       });
     };
@@ -131,11 +131,11 @@ export class SpaceShooterComponent implements OnInit {
 
     const createEnemy = () => {
       this.enemies.push({
-        x: Math.random() * (canvas.width - 40),
-        y: -40,
-        width: 40,
-        height: 40,
-        speed: 3
+        x: Math.random() * (canvas.width - 80),
+        y: -80,
+        width: 80,
+        height: 80,
+        speed: 1
       });
     };
 

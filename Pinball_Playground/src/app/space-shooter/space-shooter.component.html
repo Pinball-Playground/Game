@@ -56,7 +56,7 @@
             y: canvas.height - 50,
             width: 40,
             height: 40,
-            speed: 7,
+            speed: 1,
             dx: 0,
             color: 'white',
         };
@@ -77,8 +77,8 @@
             bullets.push({
                 x: player.x + player.width / 2 - 5,
                 y: player.y,
-                width: 5,
-                height: 10,
+                width: 10,
+                height: 15,
                 speed: 10,
                 color: 'yellow',
             });
@@ -101,9 +101,9 @@
             enemies.push({
                 x: Math.random() * (canvas.width - 40),
                 y: -40,
-                width: 40,
-                height: 40,
-                speed: 3,
+                width: 80,
+                height: 80,
+                speed: 2,
                 color: 'red',
             });
         }
