@@ -45,7 +45,7 @@
     <div id="score" class="score-display">Score: 0</div>
     <input id="nameInput" type="text" maxlength="3" placeholder="Enter your name" style="display: none;" />
     <div id="leaderboard" class="leaderboard">
-        <h2>Leaderboard</h2>
+        <h2>High Scores</h2>
         <ul>
             <li *ngFor="let score of leaderboard">{{ score.name }}: {{ score.score }}</li>
         </ul>

@@ -65,6 +65,7 @@ export class SpaceShooterComponent implements OnInit {
     const finalScoreText = document.getElementById('finalScore')!;
     const scoreText = document.getElementById('score')!;
     const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+    const leaderboardElement = document.getElementById('leaderboard')!;
 
     const backgroundImg = new Image();
     backgroundImg.src = 'assets/space-background.jpg'; // Ensure this path is correct
@@ -101,6 +102,7 @@ export class SpaceShooterComponent implements OnInit {
       scoreText.textContent = `Score: ${this.score}`;
       gameOverText.style.display = 'none';
       nameInput.style.display = 'none';
+      leaderboardElement.style.display = 'none';
     };
 
     const drawBackground = () => {
@@ -210,7 +212,7 @@ export class SpaceShooterComponent implements OnInit {
     const endGame = async () => {
       this.isGameOver = true;
       finalScoreText.textContent = this.score.toString();
-      gameOverText.style.display = 'block';
+      gameOverText.style.display = 'none'; // Hide game over text initially
 
       // Save the score to Firestore
       const scoresCollection = collection(this.firestore, 'scores');
@@ -251,16 +253,23 @@ export class SpaceShooterComponent implements OnInit {
 
     const scrollLeaderboard = () => {
       const leaderboardElement = document.getElementById('leaderboard')!;
-      let scrollPosition = leaderboardElement.scrollHeight;
+      leaderboardElement.style.display = 'block';
+      leaderboardElement.style.position = 'absolute';
+      leaderboardElement.style.left = '50%';
+      leaderboardElement.style.transform = 'translateX(-50%)';
+      leaderboardElement.style.bottom = '-100%'; // Start from below the screen
+
+      let scrollPosition = -leaderboardElement.scrollHeight;
 
       const scroll = () => {
-        if (scrollPosition <= 0) {
-          scrollPosition = leaderboardElement.scrollHeight;
+        if (scrollPosition >= window.innerHeight) {
+          leaderboardElement.style.display = 'none';
+          gameOverText.style.display = 'block'; // Show game over text after scroll
         } else {
-          scrollPosition -= 1;
+          scrollPosition += 0.8; // Adjust scroll speed as needed
+          leaderboardElement.style.bottom = `${scrollPosition}px`;
+          requestAnimationFrame(scroll);
         }
-        leaderboardElement.scrollTop = scrollPosition;
-        requestAnimationFrame(scroll);
       };
 
       scroll();
@@ -338,16 +347,24 @@ export class SpaceShooterComponent implements OnInit {
 
   private scrollLeaderboard() {
     const leaderboardElement = document.getElementById('leaderboard')!;
-    let scrollPosition = leaderboardElement.scrollHeight;
+    leaderboardElement.style.display = 'block';
+    leaderboardElement.style.position = 'absolute';
+    leaderboardElement.style.left = '50%';
+    leaderboardElement.style.transform = 'translateX(-50%)';
+    leaderboardElement.style.bottom = '-100%'; // Start from below the screen
+
+    let scrollPosition = -leaderboardElement.scrollHeight;
 
     const scroll = () => {
-      if (scrollPosition <= 0) {
-        scrollPosition = leaderboardElement.scrollHeight;
+      if (scrollPosition >= window.innerHeight) {
+        leaderboardElement.style.display = 'none';
+        const gameOverText = document.getElementById('gameOver')!;
+        gameOverText.style.display = 'block'; // Show game over text after scroll
       } else {
-        scrollPosition -= 1;
+        scrollPosition += 0.8; // Adjust scroll speed as needed
+        leaderboardElement.style.bottom = `${scrollPosition}px`;
+        requestAnimationFrame(scroll);
       }
-      leaderboardElement.scrollTop = scrollPosition;
-      requestAnimationFrame(scroll);
     };
 
     scroll();
