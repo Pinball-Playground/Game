@@ -5,6 +5,11 @@
   overflow: hidden;
 }
 
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
 canvas {
   display: block;
   background: black;
@@ -27,4 +32,44 @@ canvas {
   left: 10px;
   color: white;
   font-size: 20px;
+}
+
+#nameInput {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  text-align: center;
+  width: 100px;
+}
+
+.leaderboard {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 200px;
+  height: 300px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.leaderboard h2 {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.leaderboard ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.leaderboard li {
+  text-align: center;
+  font-size: 18px;
 }
