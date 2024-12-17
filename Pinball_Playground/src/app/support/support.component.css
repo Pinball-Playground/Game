@@ -1,18 +1,58 @@
-.support {
+/* Support page container */
+.support-container {
+  position: relative;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #f0f0f0;
-  position: relative;
+  text-align: center;
+  color: rgb(200, 255, 255);
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  background-image: url('../../assets/help.jpg'); /* Replace with your image path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
+/* Title styling */
+.support-title {
+  font-size: 3rem;
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Shadow for readability */
+  margin-bottom: 20px;
+}
+
+/* Support text paragraph */
+.support-text {
+  font-size: 1.2rem;
+  font-family: 'Arial', sans-serif;
+  margin-bottom: 30px;
+  padding: 0 20px;
+  max-width: 600px;
+}
+
+/* Back to Home button styling */
 .back-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  font-family: 'Arial', sans-serif;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
   cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: 200px;
+}
+
+.back-button:hover {
+  background-color: #45a049;
+  transform: translateY(-5px); /* Hover effect */
+}
+
+.back-button:active {
+  background-color: #388e3c; /* Slightly darker on click */
+  transform: translateY(0);
 }
