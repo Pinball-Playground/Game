@@ -106,7 +106,7 @@ export class SpaceShooterComponent implements OnInit {
     };
 
     const drawBackground = () => {
-      this.backgroundY += 1; // Scroll speed
+      this.backgroundY += 0.5; // Scroll speed
       if (this.backgroundY >= canvas.height) {
         this.backgroundY = 0;
       }
@@ -147,7 +147,7 @@ export class SpaceShooterComponent implements OnInit {
         y: -80,
         width: 80,
         height: 80,
-        speed: 1.5
+        speed: 1.25
       });
     };
 

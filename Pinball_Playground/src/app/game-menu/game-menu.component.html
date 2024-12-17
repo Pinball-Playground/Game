@@ -1,6 +1,24 @@
-<!-- filepath: /src/app/game-menu/game-menu.component.html -->
 <div class="game-menu">
-  <h1>Game Menu</h1>
+  <!-- Background Image -->
+  <div class="background-image"></div>
+  
+  <!-- Home Button in the Top Left -->
+  <button class="home-button" (click)="goBack()">Home</button>
+
+  <!-- Foreground Content -->
+  <div class="menu-box">
+    <h1>Game Menu</h1>
+  </div>
+  
+  <!-- Image Above the Button -->
+  <img src="../../assets/player-ship.png" alt="Space Shooter Logo" class="menu-logo">
+  
+  <!-- Play Button -->
   <button (click)="navigateTo('space-shooter')">Play Space Shooter</button>
-  <!-- Add more buttons for other games here -->
+
+<!-- Coming Soon Text -->
+<div class="coming-soon-box">
+  <p>More coming soon!</p>
+</div>
+
 </div>
