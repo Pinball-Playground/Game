@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Ball Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background: url('ball_background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+
+        #game-over h1 {
+            margin: 0;
+            font-size: 48px;
+            color: #e74c3c;
+        }
+
+        #game-over button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #game-over button:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="score">Score: 0</div>
+    <div id="game-over">
+        <h1>Game Over!</h1>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameOverElement = document.getElementById('game-over');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let score = 0;
+        let isGameOver = false;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            width: 150,
+            height: 20,
+            speed: 20,
+            color: '#3498db'
+        };
+
+        const ball = {
+            x: Math.random() * canvas.width,
+            y: 0,
+            radius: 15,
+            speed: 5,
+            color: '#e74c3c'
+        };
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function updateBall() {
+            ball.y += ball.speed;
+
+            if (ball.y - ball.radius > canvas.height) {
+                isGameOver = true;
+                gameOverElement.style.display = 'block';
+            }
+        }
+
+        function detectCollision() {
+            if (
+                ball.y + ball.radius >= player.y &&
+                ball.x >= player.x &&
+                ball.x <= player.x + player.width
+            ) {
+                score++;
+                ball.y = 0;
+                ball.x = Math.random() * canvas.width;
+                ball.speed += 0.5; // Increase difficulty over time
+                updateScore();
+            }
+        }
+
+        function updateScore() {
+            scoreElement.textContent = `Score: ${score}`;
+        }
+
+        function handleInput(event) {
+            if (event.key === 'ArrowLeft' && player.x > 0) {
+                player.x -= player.speed;
+            } else if (event.key === 'ArrowRight' && player.x < canvas.width - player.width) {
+                player.x += player.speed;
+            }
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawPlayer();
+            drawBall();
+            updateBall();
+            detectCollision();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function restartGame() {
+            score = 0;
+            isGameOver = false;
+            ball.y = 0;
+            ball.x = Math.random() * canvas.width;
+            ball.speed = 5;
+            updateScore();
+            gameOverElement.style.display = 'none';
+            gameLoop();
+        }
+
+        window.addEventListener('keydown', handleInput);
+        updateScore();
+        gameLoop();
+    </script>
+</body>
+</html>
