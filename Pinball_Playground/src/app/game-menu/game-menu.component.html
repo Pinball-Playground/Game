@@ -1,7 +1,7 @@
 <div class="game-menu">
   <!-- Background Image -->
   <div class="background-image"></div>
-  
+
   <!-- Home Button in the Top Left -->
   <button class="home-button" (click)="goBack()">Home</button>
 
@@ -9,16 +9,16 @@
   <div class="menu-box">
     <h1>Game Menu</h1>
   </div>
-  
+
   <!-- Image Above the Button -->
   <img src="../../assets/player-ship.png" alt="Space Shooter Logo" class="menu-logo">
-  
+
   <!-- Play Button -->
   <button (click)="navigateTo('space-shooter')">Play Space Shooter</button>
-
-<!-- Coming Soon Text -->
-<div class="coming-soon-box">
-  <p>More coming soon!</p>
-</div>
+  <button (click)="navigateTo('runner')">Play Runner Game</button>
+  <!-- Coming Soon Text -->
+  <div class="coming-soon-box">
+    <p>More coming soon!</p>
+  </div>
 
 </div>
