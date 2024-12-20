@@ -80,7 +80,7 @@ export class RunnerComponent implements OnInit {
         width: 30,
         height: 30,
         dy: 0,
-        gravity: 0.475,
+        gravity: 0.46,
         jumpStrength: -10.5
       };
 

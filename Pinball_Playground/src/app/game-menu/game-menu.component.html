@@ -10,16 +10,24 @@
     <h1>Game Menu</h1>
   </div>
 
-  <!-- Image Above the Button -->
-  <img src="../../assets/player-ship.png" alt="Space Shooter Logo" class="menu-logo">
+  <!-- Game Buttons Section -->
+  <div class="game-buttons">
+    <div class="game-option">
+      <img src="../../assets/player-ship.png" alt="Space Shooter Logo" class="game-logo">
+      <button (click)="navigateTo('space-shooter')">Play Space Shooter</button>
+    </div>
+    <div class="game-option">
+      <img src="../../assets/cube.png" alt="Runner Game Logo" class="game-logo">
+      <button (click)="navigateTo('runner')">Play Runner Game</button>
+    </div>
+    <div class="game-option">
+      <img src="../../assets/catch.png" alt="Catch Game Logo" class="game-logo">
+      <button (click)="navigateTo('catch')">Play Catch Game</button>
+    </div>
+  </div>
 
-  <!-- Play Button -->
-  <button (click)="navigateTo('space-shooter')">Play Space Shooter</button>
-  <button (click)="navigateTo('runner')">Play Runner Game</button>
-  <button (click)="navigateTo('catch')">Play Catch Game</button>
   <!-- Coming Soon Text -->
   <div class="coming-soon-box">
     <p>More coming soon!</p>
   </div>
-
 </div>
