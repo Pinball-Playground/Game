@@ -9,16 +9,72 @@
         body {
             margin: 0;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
         }
 
         canvas {
             display: block;
+        }
+
+        .game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .leaderboard {
+            display: none;
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
         }
     </style>
 </head>
 
 <body>
     <canvas #gameCanvas></canvas>
+    <div id="score">Score: 0</div>
+    <div id="gameOver" class="game-over">
+        <h1>Game Over</h1>
+        <p>Your final score: <span id="finalScore"></span></p>
+        <button id="restartButton">Restart</button>
+    </div>
+    <div id="nameInputContainer" class="name-input-container">
+        <input id="nameInput" type="text" placeholder="Enter your name" maxlength="3" />
+    </div>
+    <div id="leaderboard" class="leaderboard">
+        <div id="leaderboardContent">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboardList">
+                <li *ngFor="let score of leaderboard">{{ score.name }}: {{ score.score }}</li>
+            </ul>
+        </div>
+    </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -116,7 +172,8 @@
                     player.y < obstacle.y + obstacle.height &&
                     player.y + player.height > obstacle.y
                 ) {
-                    alert(`Game Over! Your score: ${score}`);
+                    document.getElementById('finalScore').textContent = score;
+                    document.getElementById('gameOver').style.display = 'block';
                     resetGame();
                 }
             }
@@ -159,6 +216,8 @@
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
             ctx.fillText(`Score: ${score}`, 10, 30);
+
+            document.getElementById('score').textContent = `Score: ${score}`;
 
             requestAnimationFrame(gameLoop);
         }

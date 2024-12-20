@@ -1,5 +1,28 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Firestore, collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, doc } from '@angular/fire/firestore';
+
+interface Player {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  dy: number;
+  gravity: number;
+  jumpStrength: number;
+}
+
+interface Obstacle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface Score {
+  name: string;
+  score: number;
+}
 
 @Component({
   selector: 'app-runner',
@@ -10,13 +33,32 @@ import { CommonModule } from '@angular/common';
 })
 export class RunnerComponent implements OnInit {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
+  private ctx!: CanvasRenderingContext2D;
+  public score: number = 0;
+  public gameOver: boolean = false;
+  private player!: Player;
+  private obstacles: Obstacle[] = [];
+  private obstacleTimer: number = 0;
+  private obstacleInterval: number = 120;
+  private gameSpeed: number = 3;
+  private backgroundX: number = 0;
+  public leaderboard: Score[] = [];
+  public playerName: string = '';
+  public showInput: boolean = false;
+  private groundLevel: number = 0;
+
+  constructor(private firestore: Firestore) { }
 
   ngOnInit(): void {
     const canvas = this.gameCanvas.nativeElement;
-    const ctx = canvas.getContext('2d')!;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    this.ctx = canvas.getContext('2d')!;
+    const gameOverText = document.getElementById('gameOver')!;
+    const finalScoreText = document.getElementById('finalScore')!;
+    const scoreText = document.getElementById('score')!;
+    const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+    const leaderboardElement = document.getElementById('leaderboard')!;
+    const leaderboardContent = document.getElementById('leaderboardContent')!;
+    const restartButton = document.getElementById('restartButton')!;
 
     const playerImage = new Image();
     playerImage.src = 'assets/cube.png';
@@ -27,119 +69,119 @@ export class RunnerComponent implements OnInit {
     const backgroundImage = new Image();
     backgroundImage.src = 'assets/runner_bkgnd.jpg';
 
-    const groundLevel = canvas.height * 0.75; // 1/4 of the screen from the bottom
+    const initializeGame = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      this.groundLevel = canvas.height / 2; // Set ground level to the middle of the screen
 
-    const player = {
-      x: 100,
-      y: groundLevel - 30,
-      width: 30,
-      height: 30,
-      dy: 0,
-      gravity: 0.475,
-      jumpStrength: -10
+      this.player = {
+        x: 100,
+        y: this.groundLevel - 30,
+        width: 30,
+        height: 30,
+        dy: 0,
+        gravity: 0.475,
+        jumpStrength: -10.5
+      };
+
+      this.obstacles = [];
+      this.obstacleTimer = 0;
+      this.gameSpeed = 3;
+      this.score = 0;
+      this.backgroundX = 0;
+      this.gameOver = false;
+
+      scoreText.textContent = `Score: ${this.score}`;
+      gameOverText.style.display = 'none';
+      nameInput.style.display = 'none';
+      leaderboardElement.style.display = 'none';
     };
 
-    const obstacles: { x: number; y: number; width: number; height: number }[] = [];
-    let obstacleTimer = 0;
-    const obstacleInterval = 120;
-
-    let gameSpeed = 3;
-    let score = 0;
-
-    let backgroundX = 0;
-
-    function drawBackground() {
-      ctx.drawImage(backgroundImage, backgroundX, 0, canvas.width, canvas.height);
-      ctx.drawImage(backgroundImage, backgroundX + canvas.width, 0, canvas.width, canvas.height);
-      backgroundX -= gameSpeed / 2;
-      if (backgroundX <= -canvas.width) {
-        backgroundX = 0;
+    const drawBackground = () => {
+      this.ctx.drawImage(backgroundImage, this.backgroundX, 0, canvas.width, canvas.height);
+      this.ctx.drawImage(backgroundImage, this.backgroundX + canvas.width, 0, canvas.width, canvas.height);
+      this.backgroundX -= this.gameSpeed / 2;
+      if (this.backgroundX <= -canvas.width) {
+        this.backgroundX = 0;
       }
-    }
+    };
 
-    function drawPlayer() {
-      ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
-    }
+    const drawPlayer = () => {
+      this.ctx.drawImage(playerImage, this.player.x, this.player.y, this.player.width, this.player.height);
+    };
 
-    function updatePlayer() {
-      player.dy += player.gravity;
-      player.y += player.dy;
+    const updatePlayer = () => {
+      this.player.dy += this.player.gravity;
+      this.player.y += this.player.dy;
 
-      if (player.y + player.height > groundLevel) {
-        player.y = groundLevel - player.height;
-        player.dy = 0;
+      if (this.player.y + this.player.height > this.groundLevel) {
+        this.player.y = this.groundLevel - this.player.height;
+        this.player.dy = 0;
       }
-    }
+    };
 
-    function spawnObstacle() {
+    const spawnObstacle = () => {
       const spikeCount = Math.floor(Math.random() * 3) + 1; // Randomly choose 1, 2, or 3 spikes
       const spacing = 0; // Spacing between spikes
 
       for (let i = 0; i < spikeCount; i++) {
-        obstacles.push({
-          x: canvas.width + i * (player.width + spacing),
-          y: groundLevel - player.height,
-          width: player.width,
-          height: player.height
+        this.obstacles.push({
+          x: canvas.width + i * (this.player.width + spacing),
+          y: this.groundLevel - this.player.height,
+          width: this.player.width,
+          height: this.player.height
         });
       }
-    }
+    };
 
-    function drawObstacles() {
-      obstacles.forEach(obstacle => {
-        ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+    const drawObstacles = () => {
+      this.obstacles.forEach(obstacle => {
+        this.ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
       });
-    }
+    };
 
-    function updateObstacles() {
-      obstacles.forEach(obstacle => {
-        obstacle.x -= gameSpeed;
+    const updateObstacles = () => {
+      this.obstacles.forEach(obstacle => {
+        obstacle.x -= this.gameSpeed;
       });
 
-      obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
-    }
+      this.obstacles = this.obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
+    };
 
-    function checkCollisions() {
-      for (const obstacle of obstacles) {
+    const checkCollisions = () => {
+      for (const obstacle of this.obstacles) {
         if (
-          player.x < obstacle.x + obstacle.width &&
-          player.x + player.width > obstacle.x &&
-          player.y < obstacle.y + obstacle.height &&
-          player.y + player.height > obstacle.y
+          this.player.x < obstacle.x + obstacle.width &&
+          this.player.x + this.player.width > obstacle.x &&
+          this.player.y < obstacle.y + obstacle.height &&
+          this.player.y + this.player.height > obstacle.y
         ) {
-          alert(`Game Over! Your score: ${score}`);
-          resetGame();
+          this.endGame();
         }
       }
-    }
+    };
 
-    function resetGame() {
-      player.y = groundLevel - player.height;
-      player.dy = 0;
-      obstacles.length = 0;
-      score = 0;
-      gameSpeed = 3;
-    }
+    const update = () => {
+      if (this.gameOver) return;
 
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       drawBackground();
-
       drawPlayer();
       updatePlayer();
 
-      obstacleTimer++;
-      if (obstacleTimer >= obstacleInterval) {
+      this.obstacleTimer++;
+      if (this.obstacleTimer >= this.obstacleInterval) {
         spawnObstacle();
-        obstacleTimer = 0;
-        gameSpeed += 0.1;
+        this.obstacleTimer = 0;
+        this.gameSpeed += 0.1;
 
-        if (score > 0 && score % 10 === 0) {
-          gameSpeed += 0.5;
+        if (this.score > 0 && this.score % 10 === 0) {
+          this.gameSpeed += 0.5;
         }
 
-        score++;
+        this.score++;
+        scoreText.textContent = `Score: ${this.score}`;
       }
 
       drawObstacles();
@@ -147,19 +189,114 @@ export class RunnerComponent implements OnInit {
 
       checkCollisions();
 
-      ctx.fillStyle = 'black';
-      ctx.font = '20px Arial';
-      ctx.fillText(`Score: ${score}`, 10, 30);
+      requestAnimationFrame(update);
+    };
 
-      requestAnimationFrame(gameLoop);
-    }
+    const keyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && this.player.y + this.player.height === this.groundLevel) {
+        this.player.dy = this.player.jumpStrength;
+      }
+    };
 
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && player.y + player.height === groundLevel) {
-        player.dy = player.jumpStrength;
+    nameInput.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && this.showInput) {
+        this.playerName = nameInput.value.toUpperCase().slice(0, 3);
+        nameInput.style.display = 'none';
+        this.showInput = false;
+        this.saveScore();
       }
     });
 
-    gameLoop();
+    restartButton.addEventListener('click', () => {
+      initializeGame();
+      update();
+    });
+
+    window.addEventListener('keydown', keyDown);
+    window.addEventListener('resize', initializeGame); // Handle resizing
+
+    initializeGame();
+    update();
+  }
+
+  private async endGame() {
+    if (this.gameOver) return; // Ensure endGame is only called once
+    this.gameOver = true;
+    const finalScoreText = document.getElementById('finalScore')!;
+    const gameOverText = document.getElementById('gameOver')!;
+    const nameInputContainer = document.getElementById('nameInputContainer')!;
+    const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+    const leaderboardElement = document.getElementById('leaderboard')!;
+    const leaderboardContent = document.getElementById('leaderboardContent')!;
+
+    finalScoreText.textContent = this.score.toString();
+    gameOverText.style.display = 'none'; // Hide game over text while leaderboard is scrolling
+
+    // Save the score to Firestore
+    const scoresCollection = collection(this.firestore, 'runner-scores');
+    const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+    const scoresSnapshot = await getDocs(scoresQuery);
+
+    if (scoresSnapshot.size < 10 || this.score > scoresSnapshot.docs[scoresSnapshot.size - 1].data()['score']) {
+      this.showInput = true;
+      nameInputContainer.style.display = 'block';
+      nameInput.style.display = 'block';
+      nameInput.focus();
+    } else {
+      this.showLeaderboard();
+    }
+  }
+
+  private async saveScore() {
+    const scoresCollection = collection(this.firestore, 'runner-scores');
+    const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+    const scoresSnapshot = await getDocs(scoresQuery);
+
+    if (scoresSnapshot.size >= 10) {
+      const lowestScoreDoc = scoresSnapshot.docs[scoresSnapshot.size - 1];
+      await deleteDoc(doc(this.firestore, 'runner-scores', lowestScoreDoc.id));
+    }
+
+    await addDoc(scoresCollection, { name: this.playerName, score: this.score, date: new Date() });
+    this.showLeaderboard();
+  }
+
+  private async showLeaderboard() {
+    const scoresCollection = collection(this.firestore, 'runner-scores');
+    const scoresQuery = query(scoresCollection, orderBy('score', 'desc'), limit(10));
+    const scoresSnapshot = await getDocs(scoresQuery);
+
+    this.leaderboard = scoresSnapshot.docs.map(doc => doc.data() as Score);
+    this.scrollLeaderboard();
+  }
+
+  private scrollLeaderboard() {
+    const leaderboardElement = document.getElementById('leaderboard')!;
+    const leaderboardContent = document.getElementById('leaderboardContent')!;
+    const nameInputContainer = document.getElementById('nameInputContainer')!;
+    const gameOverText = document.getElementById('gameOver')!;
+
+    leaderboardElement.style.display = 'block';
+    leaderboardContent.style.position = 'absolute';
+    leaderboardContent.style.bottom = `-${window.innerHeight}px`; // Start from below the screen
+    leaderboardContent.style.left = '50%';
+    leaderboardContent.style.transform = 'translateX(-50%)';
+
+    let scrollPosition = -window.innerHeight;
+
+    const scroll = () => {
+      if (scrollPosition >= leaderboardContent.scrollHeight) { // Stop scrolling when the bottom of the leaderboard content is above the top of the screen
+        leaderboardElement.style.display = 'none';
+        if (!this.showInput) {
+          gameOverText.style.display = 'block'; // Show game over text after scroll
+        }
+      } else {
+        scrollPosition += 0.8; // Adjust scroll speed as needed
+        leaderboardContent.style.bottom = `${scrollPosition}px`;
+        requestAnimationFrame(scroll);
+      }
+    };
+
+    scroll();
   }
 }
