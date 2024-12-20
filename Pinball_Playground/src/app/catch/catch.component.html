@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,14 +55,41 @@
         #game-over button:hover {
             background-color: #27ae60;
         }
+
+        #leaderboard {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        #leaderboard ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #leaderboard li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
+
 <body>
+    <div class="background"></div>
     <canvas id="gameCanvas"></canvas>
     <div id="score">Score: 0</div>
     <div id="game-over">
         <h1>Game Over!</h1>
-        <button onclick="restartGame()">Play Again</button>
+        <p [class.hidden]="showInput">Your final score: <span id="finalScore"></span></p>
+        <input id="nameInput" type="text" maxlength="3" placeholder="Enter your name" [class.hidden]="!showInput" />
+        <button (click)="restartGame()">Play Again</button>
+    </div>
+    <div id="leaderboard" class="leaderboard">
+        <h2 [class.hidden]="showInput">High Scores</h2>
+        <ul>
+            <li *ngFor="let score of leaderboard">{{ score.name }}: {{ score.score }}</li>
+        </ul>
     </div>
 
     <script>
@@ -112,6 +140,7 @@
             if (ball.y - ball.radius > canvas.height) {
                 isGameOver = true;
                 gameOverElement.style.display = 'block';
+                document.getElementById('finalScore').textContent = score;
             }
         }
 
@@ -170,4 +199,5 @@
         gameLoop();
     </script>
 </body>
+
 </html>
