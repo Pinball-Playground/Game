@@ -72,7 +72,7 @@ export class RunnerComponent implements OnInit {
     const initializeGame = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      this.groundLevel = canvas.height / 2; // Set ground level to the middle of the screen
+      this.groundLevel = canvas.height / 2;
 
       this.player = {
         x: 100,
@@ -220,7 +220,7 @@ export class RunnerComponent implements OnInit {
   }
 
   private async endGame() {
-    if (this.gameOver) return; // Ensure endGame is only called once
+    if (this.gameOver) return;
     this.gameOver = true;
     const finalScoreText = document.getElementById('finalScore')!;
     const gameOverText = document.getElementById('gameOver')!;
@@ -278,20 +278,20 @@ export class RunnerComponent implements OnInit {
 
     leaderboardElement.style.display = 'block';
     leaderboardContent.style.position = 'absolute';
-    leaderboardContent.style.bottom = `-${window.innerHeight}px`; // Start from below the screen
+    leaderboardContent.style.bottom = `-${window.innerHeight}px`;
     leaderboardContent.style.left = '50%';
     leaderboardContent.style.transform = 'translateX(-50%)';
 
     let scrollPosition = -window.innerHeight;
 
     const scroll = () => {
-      if (scrollPosition >= leaderboardContent.scrollHeight) { // Stop scrolling when the bottom of the leaderboard content is above the top of the screen
+      if (scrollPosition >= leaderboardContent.scrollHeight) {
         leaderboardElement.style.display = 'none';
         if (!this.showInput) {
           gameOverText.style.display = 'block'; // Show game over text after scroll
         }
       } else {
-        scrollPosition += 0.8; // Adjust scroll speed as needed
+        scrollPosition += 0.8;
         leaderboardContent.style.bottom = `${scrollPosition}px`;
         requestAnimationFrame(scroll);
       }
